@@ -68,15 +68,19 @@ export async function isHSAuth(req, res, next) {
 
     if (!customer) return HttpException(res, 404, 'User not found');
 
-    if (!customer.hsn_codes ||
-      customer.hsn_codes.length === 0 ||
-      !customer.hsn_codes.includes(validated_req.search_text.hs_code) ||
-      customer.hsn_codes_valid_upto< Date.now()
+    if (
+      !( customer.hsn_codes &&
+      customer.hsn_codes.length > 0 &&
+      customer.hsn_codes.includes(validated_req.search_text.hs_code) &&
+      new Date(customer.hsn_codes_valid_upto) >= new Date() )
     ) return next();
     console.log("Hello I am here");
     const searchResult = await fetchImportData(validated_req, true);
 
-    return HttpResponse(res, 200, 'records fetched successfully', searchResult);
+    return HttpResponse(res, 200, 'records fetched successfully', {
+      searchResult,
+      subscription: true
+    });
 
   } catch (error) {
     return InternalServerException(res, error);
