@@ -10,8 +10,8 @@ import { fetchImportData } from './utils/searchImportData.js';
 export async function uploadImportData(req, res) {
   try {
     const filePath = req.file.path;
+    console.log("hello");
     const import_data = await processImportData(filePath);
-
     if (!import_data || !import_data.length) {
       return HttpResponse(res, 400, 'No data found in the Excel sheet.', {});
     }

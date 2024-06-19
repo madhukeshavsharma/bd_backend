@@ -11,8 +11,8 @@ async function insertImportData(importData) {
             console.log(`Inserted ${chunk.length} documents`);
             await new Promise(resolve => setTimeout(resolve,1000));
         } catch (error) {
-            throw HttpException(res, 500, 'Error Inserting Import Data', {});
-            // console.log(error);
+            // throw HttpException(res, 500, 'Error Inserting Import Data', {});
+            console.log(error);
             // Handle the error appropriately here
         }
     }
