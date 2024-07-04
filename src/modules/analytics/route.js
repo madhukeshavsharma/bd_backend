@@ -13,7 +13,7 @@ routes.use('/buyer', buyer_routes.customer_routes);
 routes.use('/admin/supplier', supplier_routes.admin_routes);
 routes.use('/supplier', supplier_routes.customer_routes);
 
-routes.use('/admin/import', authenticate_admin, import_routes.admin_routes);
+routes.use('/admin/import', import_routes.admin_routes);
 routes.use('/import', import_routes.customer_routes);
 
 routes.use('/admin/export', export_routes.admin_routes);
