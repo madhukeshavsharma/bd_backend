@@ -59,4 +59,6 @@ export const update_customer_as_admin = Joi.object({
   buyer_sub_valid_upto: Joi.date().greater('now'),
   supplier_sub: Joi.number().min(1),
   supplier_sub_valid_upto: Joi.date().greater('now'),
+  download_import_sub: Joi.number(),
+  download_export_sub: Joi.number()
 });
