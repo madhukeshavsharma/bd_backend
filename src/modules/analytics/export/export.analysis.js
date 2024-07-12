@@ -178,7 +178,7 @@ function generateUSDPipeline(field, query, uniqueMatch) {
             },
         },
         {
-            $sort: { total_value: -1 },
+            $sort: { count: -1 },
         }
     ];
 }
