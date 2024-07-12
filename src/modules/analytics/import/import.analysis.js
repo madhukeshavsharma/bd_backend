@@ -92,6 +92,7 @@ const sortAnalysis = async (req, res) => {
                         Importer_Name: { $addToSet: '$Importer_Name' },
                         Port_Of_Shipment: { $addToSet: '$Port_Of_Shipment'},
                         Indian_Port: { $addToSet: '$Indian_Port'},
+                        Supplier_Name:{ $addToSet: '$Supplier_Name'},
                         // Add more fields as needed
                     },
                 },
@@ -99,9 +100,10 @@ const sortAnalysis = async (req, res) => {
                     $project: {
                         _id: 0,
                         Country: { $size: '$Country' },
-                        Importer_Name: { $size: '$Importer_Name' },
+                        Importer: { $size: '$Importer_Name' },
                         Port_Of_Shipment: { $size: '$Port_Of_Shipment'},
                         Indian_Port: { $size: '$Indian_Port'},
+                        Exporter: { $size: '$Supplier_Name'},
                         // Add more fields as needed
                     },
                 }
@@ -110,7 +112,7 @@ const sortAnalysis = async (req, res) => {
         const data = await Import.aggregate(pipeline);
 
         const responseData = {
-            Total_Shipments: totalShipments,
+            Shipments: totalShipments,
             ...data[0]
         }
         res.status(200).json(responseData);
@@ -193,11 +195,11 @@ const detailAnalysis = async (req, res) => {
         const suppliers = await Import.aggregate(supplier_pipeline);
 
         res.status(200).json({
-            Importers: importers,
-            Countries: countries,
-            Ports: ports,
-            Suppliers: suppliers,
-            Port_Of_Shipment: portShipment
+            Importer: importers,
+            Country: countries,
+            Port_of_Loading: ports,
+            Exporter: suppliers,
+            Port_Of_Discharge: portShipment
         });
     } catch (error) {
         res.status(404).json({ message: error.message });
@@ -236,11 +238,11 @@ const detailAnalysisUSD = async (req, res) => {
         const suppliers = await Import.aggregate(supplier_pipeline);
 
         res.status(200).json({
-            Importers: importers,
-            Countries: countries,
-            Ports: ports,
-            Suppliers: suppliers,
-            Port_Of_Shipment: portShipment
+            Importer: importers,
+            Country: countries,
+            Port_of_Loading: ports,
+            Exporter: suppliers,
+            Port_Of_Discharge: portShipment
         });
     } catch (error) {
         res.status(404).json({ message: error.message });
