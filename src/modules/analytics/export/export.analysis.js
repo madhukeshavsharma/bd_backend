@@ -174,7 +174,7 @@ function generateUSDPipeline(field, query, uniqueMatch) {
             $project: {
                 _id: 0, // Exclude the original "_id" field from the output
                 data: "$_id", // Rename the group's "_id" field to "country"
-                total_value: 1, // Keep the count field
+                count: 1, // Keep the count field
             },
         },
         {
