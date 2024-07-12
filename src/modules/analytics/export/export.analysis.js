@@ -174,11 +174,11 @@ function generateUSDPipeline(field, query, uniqueMatch) {
             $project: {
                 _id: 0, // Exclude the original "_id" field from the output
                 data: "$_id", // Rename the group's "_id" field to "country"
-                count: 1, // Keep the count field
+                total_value: 1, // Keep the count field
             },
         },
         {
-            $sort: { count: -1 },
+            $sort: { total_value: -1 },
         }
     ];
 }
@@ -215,7 +215,7 @@ const detailAnalysisUSD = async (req, res) => {
         const portOfLoading = await Import.aggregate(portOfLoadingPipeline);
         const portOfDischarge = await Import.aggregate(portOfDischargePipeline);
 
-        res.json( {Exporter: exporters,
+       res.json( {Exporter: exporters,
             Country: countries,
             Port_of_Loading: portOfLoading,
             Importer : buyers,
