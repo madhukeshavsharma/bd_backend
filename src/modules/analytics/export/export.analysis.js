@@ -46,7 +46,7 @@ const sortAnalysis = async (req, res) => {
         );
     const validated_req = validation.value;
 
-    const subscription = await checkSubscription(req.user.id, validated_req);
+    const subscription = await checkSubscription(res, req.user.id, validated_req);
     if (!subscription) return new HttpException(res, 400, "Invalid Subscription");
 
     const query = generateQuery(validated_req);
@@ -127,7 +127,7 @@ const detailAnalysis = async (req, res) => {
         );
     const validated_req = validation.value;
 
-    const subscription = await checkSubscription(req.user.id, validated_req);
+    const subscription = await checkSubscription(res, req.user.id, validated_req);
     if (!subscription) return new HttpException(res, 400, "Invalid Subscription");
 
     const query = generateQuery(validated_req);
@@ -196,7 +196,7 @@ const detailAnalysisUSD = async (req, res) => {
         );
     const validated_req = validation.value;
 
-    const subscription = await checkSubscription(req.user.id, validated_req);
+    const subscription = await checkSubscription(res, req.user.id, validated_req);
     if (!subscription) return new HttpException(res, 400, "Invalid Subscription");
 
     const query = generateQuery(validated_req);
@@ -252,10 +252,10 @@ function getDetailAnalysisDataPipelines(query, pipelineGenerator) {
     }
 }
 
-async function checkSubscription(id, validated_req) {
+async function checkSubscription(res, id, validated_req) {
     const customer= await Customer.findOne({_id:id});
     console.log(customer);
-    if (!customer) return new HttpException(res, 404, 'User not found');
+    if (!customer) return false;
 
     if (
         !( customer.export_hsn_codes &&
