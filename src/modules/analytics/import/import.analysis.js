@@ -213,9 +213,9 @@ const detailAnalysisUSD = async (req, res) => {
         res.status(200).json({
             Importer: importers,
             Country: countries,
-            Port_Of_Discharge: ports,
+            Port_of_Discharge: ports,
             Exporter: suppliers,
-            Port_Of_Loading: portShipment
+            Port_of_Loading: portShipment
         });
     } catch (error) {
         res.status(404).json({ message: error.message });
