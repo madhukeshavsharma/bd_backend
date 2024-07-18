@@ -16,9 +16,9 @@ const generateQuery = (validated_req) => {
         HS_Code: hs_code ? { $regex: new RegExp('^' + hs_code, 'i') } : '',
         Item_Description: product_name ? { $regex: new RegExp(escapeRegExp(product_name), 'i') } : '',
 
-        Importer_Name: filters && filters.buyer_name ? { $regex: new RegExp(escapeRegExp(filters.buyer_name), 'i') } : '',
-        Supplier_Name: filters && filters.supplier_name ? { $regex: new RegExp(escapeRegExp(filters.supplier_name), 'i') } : '',
-        Indian_Port: filters && filters.port_code ? { $regex: new RegExp(escapeRegExp(filters.port_code), 'i') } : '',
+        Buyer_Name: filters && filters.buyer_name ? { $regex: new RegExp(escapeRegExp(filters.buyer_name), 'i') } : '',
+        Exporter_Name: filters && filters.supplier_name ? { $regex: new RegExp(escapeRegExp(filters.supplier_name), 'i') } : '',
+        Port_of_Loading: filters && filters.port_code ? { $regex: new RegExp(escapeRegExp(filters.port_code), 'i') } : '',
         UQC: filters && filters.unit ? { $regex: new RegExp(escapeRegExp(filters.unit), 'i') } : '',
         Country: filters && filters.country ? { $regex: new RegExp(escapeRegExp(filters.country), 'i') } : '',
 
@@ -131,7 +131,7 @@ const detailAnalysis = async (req, res) => {
     if (!subscription) return new HttpException(res, 400, "Invalid Subscription");
 
     const query = generateQuery(validated_req);
-
+    console.log(query)
     const {
         countryPipeline,
         buyerPipeline,
@@ -200,7 +200,7 @@ const detailAnalysisUSD = async (req, res) => {
     if (!subscription) return new HttpException(res, 400, "Invalid Subscription");
 
     const query = generateQuery(validated_req);
-
+        console.log(query)
     const {
         countryPipeline,
         buyerPipeline,
@@ -254,6 +254,7 @@ function getDetailAnalysisDataPipelines(query, pipelineGenerator) {
 
 async function checkSubscription(res, id, validated_req) {
     const customer= await Customer.findOne({_id:id});
+    console.log(id);
     console.log(customer);
     if (!customer) return false;
 

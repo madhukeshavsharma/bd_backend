@@ -52,7 +52,7 @@ const sortAnalysis = async (req, res) => {
     if (!subscription) return new HttpException(res, 400, "Invalid Subscription");
 
     const query = generateQuery(validated_req);
-
+    console.log(query);
     try {
         const pipeline = [
                 {
@@ -120,7 +120,7 @@ function generatePipeline(field, query, uniqueMatch) {
 
 async function checkSubscription(res, id, validated_req) {
     const customer= await Customer.findOne({_id:id});
-    console.log(customer);
+    console.log(" izm hedhjkshdkjahda ");
     if (!customer) return false;
 
     if (
@@ -144,11 +144,11 @@ const detailAnalysis = async (req, res) => {
             {}
         );
     const validated_req = validation.value;
-
-    const subscription = await checkSubscription(req.user.id, validated_req);
+        console.log("I am here in controller")
+    const subscription = await checkSubscription(res,req.user.id, validated_req);
     if (!subscription) return new HttpException(res, 400, "Invalid Subscription");
 
-
+    console.log("I am here in controller2")
     const query = generateQuery(validated_req);
 
     const {
