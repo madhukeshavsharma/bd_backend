@@ -10,7 +10,7 @@ const buyerSchema = new mongoose.Schema({
     Address: { type: String, default: null },
     Country: { type: String, default: null },
     Platform: { type: String, default: null },
-    Certification: { type: Number, default: null }
+    Certification: { type: String, default: null }
 },
 {timestamps: true}
 );

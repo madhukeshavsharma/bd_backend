@@ -74,7 +74,7 @@ export async function contact(req, res) {
                     from: process.env.SENDER_EMAIL,
                     to: contact_email,
                     subject: 'Thank You for Connecting to Bizdiving - ZCEL INDIA',
-                    // text: `We Received Your Mail.`,
+                    
                     html:  `<head>
                     <style>
                         body {

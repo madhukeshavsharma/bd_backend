@@ -10,11 +10,11 @@ export async function createServer() {
     const server = express();
     
     await connectdb();
-    // server.use(morgan('dev', {stream}));
+    
     server.use(cors());
-    // server.use(hpp());
-    // server.use(helmet());
-    // server.use(compression());
+    
+    
+    
     server.use(express.json());
     server.use(express.urlencoded({extended: true}));
 

@@ -15,14 +15,14 @@ export async function uploadImportData(req, res) {
     if (!import_data || !import_data.length) {
       return HttpResponse(res, 400, 'No data found in the Excel sheet.', {});
     }
-    // console.log(import_data);
+    
     try {
       await insertImportData(import_data);
 
-      // delete the file after processing
+      
       fs.unlinkSync(filePath);
     } catch (error) {
-      // delete the file in case of error
+      
       fs.unlinkSync(filePath);
       throw HttpException(res, 500, 'Error Inserting Import Data', {});
     }
@@ -75,13 +75,7 @@ export async function fetchBuyerData(req, res) {
   }
 }
 
-/*
-1- get id from params
-2- get user from req
-3- check if user exist and it have subscription
-4- check if id exist in database
-5- return the data
-*/
+
 
 
 export async function fetchBuyerDetails(req, res) {

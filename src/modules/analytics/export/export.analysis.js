@@ -2,8 +2,9 @@ import { Import } from './import.model.js';
 import {HttpException} from "../../../handlers/HttpException.js";
 import {search_import} from "./model.js";
 import { Customer } from '../../user/customer.model.js';
+import { set } from 'mongoose';
 function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
 }
 
 const generateQuery = (validated_req) => {
@@ -64,7 +65,7 @@ const sortAnalysis = async (req, res) => {
                     Port_of_Loading: { $addToSet: '$Port_of_Loading' },
                     Port_of_Discharge: { $addToSet: '$Port_of_Discharge' },
                     Buyer_Name: { $addToSet: '$Buyer_Name' },
-                    // Add more fields as needed
+                    
                 },
             },
             {
@@ -75,7 +76,7 @@ const sortAnalysis = async (req, res) => {
                     Port_of_Loading: { $size: '$Port_of_Loading' },
                     Port_of_Discharge: { $size: '$Port_of_Discharge' },
                     Importer: { $size: '$Buyer_Name' },
-                    // Add more fields as needed
+                    
                 },
             }
         ]
@@ -95,19 +96,19 @@ const sortAnalysis = async (req, res) => {
 function generatePipeline(field, query, uniqueMatch) {
     return  [
         {
-            $match: { $and: [query, uniqueMatch] }, // Filter documents that match the combined criteria
+            $match: { $and: [query, uniqueMatch] }, 
         },
         {
             $group: {
-                _id: `$${field}`, // Group by the "country" field
-                count: { $sum: 1 }, // Count the number of documents in each group
+                _id: `$${field}`, 
+                count: { $sum: 1 }, 
             },
         },
         {
             $project: {
-                _id: 0, // Exclude the original "_id" field from the output
-                data: "$_id", // Rename the group's "_id" field to "country"
-                count: 1, // Keep the count field
+                _id: 0, 
+                data: "$_id", 
+                count: 1, 
             },
         },
         {
@@ -142,19 +143,35 @@ const detailAnalysis = async (req, res) => {
 
     try {
 
-        const countries = await Import.aggregate(countryPipeline);
-        const buyers = await Import.aggregate(buyerPipeline);
-        const exporters = await Import.aggregate(exporterPipeline);
-        const portOfLoading = await Import.aggregate(portOfLoadingPipeline);
-        const portOfDischarge = await Import.aggregate(portOfDischargePipeline);
+        Promise.all([ 
+            Import.aggregate(countryPipeline), 
+            Import.aggregate(buyerPipeline), 
+            Import.aggregate(exporterPipeline), 
+            Import.aggregate(portOfLoadingPipeline), 
+            Import.aggregate(portOfDischargePipeline)]).then((values) => {
+                
+                setTimeout(() => {
+                res.json({
+                    Country: values[0],
+                    Importer: values[1],
+                    Exporter: values[2],
+                    Port_of_Loading: values[3],
+                    Port_of_Discharge: values[4]
+                })}, 10000);
+            });
+        
+        
+        
+        
+        
 
-        res.json({
-            Country: countries,
-            Importer: buyers,
-            Exporter: exporters,
-            Port_of_Loading: portOfLoading,
-            Port_of_Discharge: portOfDischarge
-        });
+        
+        
+        
+        
+        
+        
+        
 
     } catch (error) {
         res.status(404).json({ message: error.message });
@@ -164,19 +181,19 @@ const detailAnalysis = async (req, res) => {
 function generateUSDPipeline(field, query, uniqueMatch) {
     return  [
         {
-            $match: { $and: [query, uniqueMatch] }, // Filter documents that match the combined criteria
+            $match: { $and: [query, uniqueMatch] }, 
         },
         {
             $group: {
-                _id: `$${field}`, // Group by the "country" field
-                count: { $sum: '$Total_Value_USD' }, // Count the number of documents in each group
+                _id: `$${field}`, 
+                count: { $sum: '$Total_Value_USD' }, 
             },
         },
         {
             $project: {
-                _id: 0, // Exclude the original "_id" field from the output
-                data: "$_id", // Rename the group's "_id" field to "country"
-                count: 1, // Keep the count field
+                _id: 0, 
+                data: "$_id", 
+                count: 1, 
             },
         },
         {
@@ -211,19 +228,31 @@ const detailAnalysisUSD = async (req, res) => {
 
     try {
 
-        const countries = await Import.aggregate(countryPipeline);
-        const buyers = await Import.aggregate(buyerPipeline);
-        const exporters = await Import.aggregate(exporterPipeline);
-        const portOfLoading = await Import.aggregate(portOfLoadingPipeline);
-        const portOfDischarge = await Import.aggregate(portOfDischargePipeline);
+        
 
-        res.json({
-            Country: countries,
-            Importer: buyers,
-            Exporter: exporters,
-            Port_of_Loading: portOfLoading,
-            Port_of_Discharge: portOfDischarge
-        });
+        Promise.all([ 
+            Import.aggregate(countryPipeline), 
+            Import.aggregate(buyerPipeline), 
+            Import.aggregate(exporterPipeline), 
+            Import.aggregate(portOfLoadingPipeline), 
+            Import.aggregate(portOfDischargePipeline)]).then((values) => {
+                
+                setTimeout(() => {
+                res.json({
+                    Country: values[0],
+                    Importer: values[1],
+                    Exporter: values[2],
+                    Port_of_Loading: values[3],
+                    Port_of_Discharge: values[4]
+                })}, 9000);
+            });
+        
+        
+        
+        
+        
+        
+        
 
     } catch (error) {
         res.status(404).json({ message: error.message });
@@ -261,7 +290,7 @@ async function checkSubscription(res, id, validated_req) {
     if (
         !( customer.export_hsn_codes &&
         customer.export_hsn_codes.length > 0 &&
-        // customer.hsn_codes.includes(validated_req.search_text.hs_code) &&
+        
         isSubscribedHSCode(customer, validated_req.search_text.hs_code) &&
         new Date(customer.export_hsn_codes_valid_upto) >= new Date() )
       ) return false;

@@ -23,7 +23,7 @@ import nodemailer from 'nodemailer';
 import {Admin} from "./admin.model.js";
 import { Import as Export } from '../analytics/export/import.model.js';
 import { Import } from '../analytics/import/import.model.js';
-//ok tested
+
 export async function createAdmin(req, res) {
   try {
     const validation = create_admin.validate(req.body);
@@ -39,7 +39,7 @@ export async function createAdmin(req, res) {
     return InternalServerException(res, error);
   }
 }
-//ok tested
+
 
 export async function updateAdmin(req, res) {
   try {
@@ -60,7 +60,7 @@ export async function updateAdmin(req, res) {
     return InternalServerException(res, error);
   }
 }
-//ok tested
+
 export async function getAdmin(req, res) {
   try {
     const admin = await models.readAdminById(req.user.id);
@@ -71,7 +71,7 @@ export async function getAdmin(req, res) {
   }
 }
 
-//ok tested
+
 export async function loginAdmin(req, res) {
   try {
     const validation = login_admin.validate(req.body);
@@ -135,7 +135,7 @@ export async function deleteData(req, res) {
 }
 
 
-//okk tested
+
 export async function updateCustomerAsAdmin(req, res) {
   try {
     const validation = update_customer_as_admin.validate(req.body);
@@ -150,7 +150,7 @@ export async function updateCustomerAsAdmin(req, res) {
     return InternalServerException(res, error);
   }
 }
-//ok tested
+
 export async function getAdminNewTokenPair(req, res) {
   try {
     const admin = req.user.data;
@@ -173,7 +173,7 @@ export async function getAdminNewTokenPair(req, res) {
     return InternalServerException(res, error);
   }
 }
-//ok tested
+
 export async function createCustomer(req, res) {
   try {
     const validation = create_customer.validate(req.body);
@@ -196,7 +196,7 @@ export async function createCustomer(req, res) {
   }
 }
 
-//okk tested
+
 export async function updateCustomer(req, res) {
   try {
     const validation = update_customer.validate(req.body);
@@ -214,7 +214,7 @@ export async function updateCustomer(req, res) {
     return InternalServerException(res, error);
   }
 }
-//okk tested
+
 export async function getCustomer(req, res) {
   try {
     const customer = await models.readCustomerById(req.user.id);
@@ -224,7 +224,7 @@ export async function getCustomer(req, res) {
     return InternalServerException(res, error);
   }
 }
-//okk tested
+
 export async function loginCustomer(req, res) {
   try {
     const validation = login_customer.validate(req.body);

@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import {Customer} from "../../user/customer.model.js";
 
 function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
 }
 
 const generateQuery = (validated_req) => {
@@ -66,7 +66,7 @@ const sortAnalysis = async (req, res) => {
                         Port_Of_Shipment: { $addToSet: '$Port_Of_Shipment'},
                         Indian_Port: { $addToSet: '$Indian_Port'},
                         Supplier_Name: { $addToSet: '$Supplier_Name'}
-                        // Add more fields as needed
+                        
                     },
                 },
                 {
@@ -77,7 +77,7 @@ const sortAnalysis = async (req, res) => {
                         Port_Of_Shipment: { $size: '$Port_Of_Shipment'},
                         Indian_Port: { $size: '$Indian_Port'},
                         Exporter: { $size: '$Supplier_Name'}
-                        // Add more fields as needed
+                        
                     },
                 }
             ]
@@ -97,19 +97,19 @@ const sortAnalysis = async (req, res) => {
 function generatePipeline(field, query, uniqueMatch) {
     return  [
         {
-            $match: { $and: [query, uniqueMatch] }, // Filter documents that match the combined criteria
+            $match: { $and: [query, uniqueMatch] }, 
         },
         {
             $group: {
-                _id: `$${field}`, // Group by the "country" field
-                count: { $sum: 1 }, // Count the number of documents in each group
+                _id: `$${field}`, 
+                count: { $sum: 1 }, 
             },
         },
         {
             $project: {
-                _id: 0, // Exclude the original "_id" field from the output
-                data: "$_id", // Rename the group's "_id" field to "country"
-                count: 1, // Keep the count field
+                _id: 0, 
+                data: "$_id", 
+                count: 1, 
             },
         },
         {
@@ -126,7 +126,7 @@ async function checkSubscription(res, id, validated_req) {
     if (
         !( customer.hsn_codes &&
         customer.hsn_codes.length > 0 &&
-        // customer.hsn_codes.includes(validated_req.search_text.hs_code) &&
+        
         isSubscribedHSCode(customer, validated_req.search_text.hs_code) &&
         new Date(customer.hsn_codes_valid_upto) >= new Date() )
       ) return false;
@@ -226,19 +226,19 @@ const detailAnalysisUSD = async (req, res) => {
 function generateUSDPipeline(field, query, uniqueMatch) {
     return  [
         {
-            $match: { $and: [query, uniqueMatch] }, // Filter documents that match the combined criteria
+            $match: { $and: [query, uniqueMatch] }, 
         },
         {
             $group: {
-                _id: `$${field}`, // Group by the "country" field
-                count: { $sum: '$Total_Value_USD' }, // Count the number of documents in each group
+                _id: `$${field}`, 
+                count: { $sum: '$Total_Value_USD' }, 
             },
         },
         {
             $project: {
-                _id: 0, // Exclude the original "_id" field from the output
-                data: "$_id", // Rename the group's "_id" field to "country"
-                count: 1, // Keep the count field
+                _id: 0, 
+                data: "$_id", 
+                count: 1, 
             },
         },
         {

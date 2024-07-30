@@ -8,7 +8,7 @@ import { fetchImportData } from './utils/searchImportData.js';
 import {Import} from "./import.model.js";
 
 function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
 }
 
 const search_text = Joi.object({
@@ -86,7 +86,7 @@ export async function isHSAuth(req, res, next) {
     if (
       !( customer.hsn_codes &&
       customer.hsn_codes.length > 0 &&
-      // customer.hsn_codes.includes(validated_req.search_text.hs_code) &&
+      
       isSubscribedHSCode(customer, validated_req.search_text.hs_code) &&
       new Date(customer.hsn_codes_valid_upto) >= new Date() )
     ) return next();

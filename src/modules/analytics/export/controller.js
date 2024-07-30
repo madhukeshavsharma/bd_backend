@@ -19,10 +19,10 @@ export async function uploadImportData(req, res) {
     try {
       await insertImportData(import_data);
 
-      // delete the file after processing
+      
       fs.unlinkSync(filePath);
     } catch (error) {
-      // delete the file in case of error
+      
       fs.unlinkSync(filePath);
       throw HttpException(res, 500, 'Error Inserting Import Data', {});
     }
@@ -39,13 +39,13 @@ export async function uploadImportData(req, res) {
 }
 
 
-// buyer name -> Importer name
-// supplier name -> Supplier name
-// code port -> Indian port
-// unit 0-> UQC  
 
-// produt name -> item description
-// country -> Country
+
+
+
+
+
+
 
 
 export async function searchImportData(req, res) {

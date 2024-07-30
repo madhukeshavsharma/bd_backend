@@ -1,7 +1,7 @@
 import { Import } from '../import.model.js'
 
 function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
 }
 
 export const fetchImportData = async (validated_req, all) => {
@@ -33,9 +33,9 @@ export const fetchImportData = async (validated_req, all) => {
         }
     });
 
-    // if(query.HS_Code && query.Item_Description) {
-    //     delete query.Item_Description;
-    // }
+    
+    
+    
 
     searchResult = await Import.find(query).skip(skip).limit(parseInt(page_size));
 
