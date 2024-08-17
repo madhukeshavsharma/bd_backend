@@ -23,7 +23,7 @@ admin_routes.patch(
   controllers.updateCustomerAsAdmin
 );
 
-admin_routes.post('/delete', authenticate_admin,controllers.deleteData);
+// admin_routes.post('/delete', authenticate_admin,controllers.deleteData);
 
 customer_routes.get('/', authenticate_customer, controllers.getCustomer);
 customer_routes.post('/auth/login', controllers.loginCustomer);

@@ -39,4 +39,20 @@ const importSchema = new mongoose.Schema({
     { timestamps: true }
 );
 
-export const Import = mongoose.model('Import', importSchema);
+
+
+export const Import13 = mongoose.model('Import13', importSchema);
+export const Import21 = mongoose.model('Import21', importSchema);
+export const Import25 = mongoose.model('Import25', importSchema);
+export const Import27 = mongoose.model('Import27', importSchema);
+export const Import28 = mongoose.model('Import28', importSchema);
+export const Import29 = mongoose.model('Import29', importSchema);
+export const Import30 = mongoose.model('Import30', importSchema);
+export const Import31 = mongoose.model('Import31', importSchema);
+export const Import32 = mongoose.model('Import32', importSchema);
+export const Import33 = mongoose.model('Import33', importSchema);
+export const Import34 = mongoose.model('Import34', importSchema);
+export const Import38 = mongoose.model('Import38', importSchema);
+export const Import39 = mongoose.model('Import39', importSchema);
+export const Import40 = mongoose.model('Import40', importSchema);
+export const Import90 = mongoose.model('Import90', importSchema);
