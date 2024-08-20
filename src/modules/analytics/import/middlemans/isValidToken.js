@@ -6,8 +6,12 @@ import {Customer} from "../../../user/customer.model.js";
 import {whichDB} from "../utils/whichDB.js";
 export const isValidToken = async (req, res, next) => {
     const validated_req = req.validated_req;
+    
     const DB = whichDB(validated_req.chapter_code);
     if(!DB) return HttpResponse(res, 400, 'Invalid Chapter', {});
+    // if(!validated_req.search_text.hs_code){
+    //     validated_req.search_text.hs_code.push("30");
+    // }
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 

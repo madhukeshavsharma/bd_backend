@@ -4,7 +4,7 @@ import Joi from 'joi';
 const search_text = Joi.object({
   hs_code: Joi.array().items(Joi.string()),
   product_name: Joi.array().items(Joi.string()),
-}).or('hs_code', 'product_name');
+})
 
 const filters = Joi.object({
   buyer_name: Joi.array().items(Joi.string()),
