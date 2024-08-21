@@ -7,6 +7,7 @@ import {isValidBody} from "./middlemans/isValidBody.js";
 import {isValidToken} from "./middlemans/isValidToken.js";
 import {isValidHSCode} from "./middlemans/isValidHSCode.js";
 import {isDownloadSub} from "./middlemans/isDownloadSub.js";
+import {uniqueAnalysis} from "./import.analysis.js";
 
 const customer_routes = express.Router();
 const admin_routes = express.Router();
@@ -16,6 +17,7 @@ customer_routes.post('/search', isValidBody, isValidToken, isValidHSCode, isDown
 
 customer_routes.post('/sort-analysis', isValidBody, authenticate_customer, sortAnalysis);
 customer_routes.post('/detail-analysis', isValidBody, authenticate_customer, detailAnalysis);
+customer_routes.post('/unique-analysis', isValidBody, authenticate_customer, uniqueAnalysis);
 customer_routes.post('/detail-analysis-usd', isValidBody, authenticate_customer, detailAnalysisUSD);
 
 export default {customer_routes, admin_routes}

@@ -36,6 +36,10 @@ const sortAnalysis = async (req, res) => {
     const validated_req = req.validated_req;
     const DB = whichDB(validated_req.chapter_code);
     if(!DB) return HttpException(res, 400, "Invalid Chapter Code");
+    if(!validated_req.search_text.hs_code){
+        validated_req.search_text.hs_code = [];
+        validated_req.search_text.hs_code.push(validated_req.chapter_code);
+    }
     const subscription = await checkSubscription(req.user.id, validated_req);
     if (!subscription) return HttpException(res, 400, "Invalid Subscription");
 
@@ -90,6 +94,10 @@ const detailAnalysis = async (req, res) => {
     const validated_req = req.validated_req;
     const DB = whichDB(validated_req.chapter_code);
     if(!DB) return HttpException(res, 400, "Invalid Chapter Code");
+    if(!validated_req.search_text.hs_code){
+        validated_req.search_text.hs_code = [];
+        validated_req.search_text.hs_code.push(validated_req.chapter_code);
+    }
     const subscription = await checkSubscription(req.user.id, validated_req);
     if (!subscription) return HttpException(res, 400, "Invalid Subscription");
 
@@ -143,6 +151,10 @@ const uniqueAnalysis = async (req, res) => {
     const validated_req = req.validated_req;
     const DB = whichDB(validated_req.chapter_code);
     if(!DB) return HttpException(res, 400, "Invalid Chapter Code");
+    if(!validated_req.search_text.hs_code){
+        validated_req.search_text.hs_code = [];
+        validated_req.search_text.hs_code.push(validated_req.chapter_code);
+    }
     const subscription = await checkSubscription(req.user.id, validated_req);
     if (!subscription) return HttpException(res, 400, "Invalid Subscription");
 
@@ -155,29 +167,29 @@ const uniqueAnalysis = async (req, res) => {
         {
             $facet: {
                 importers: [
-                    { $group: { _id: "$Importer_Name", count: { $sum: 1 } } },
+                    { $group: { _id: "$Importer_Name" } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
-                    { $sort: { count: -1 } }
+                    { $sort: { data: 1} }
                 ],
                 countries: [
-                    { $group: { _id: "$Country", count: { $sum: 1 } } },
+                    { $group: { _id: "$Country" } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
-                    { $sort: { count: -1 } }
+                    { $sort: { data: 1} }
                 ],
                 ports: [
-                    { $group: { _id: "$Indian_Port", count: { $sum: 1 } } },
+                    { $group: { _id: "$Indian_Port" } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
-                    { $sort: { count: -1 } }
+                    { $sort: { data: 1} }
                 ],
                 portShipment: [
-                    { $group: { _id: "$Port_Of_Shipment", count: { $sum: 1 } } },
+                    { $group: { _id: "$Port_Of_Shipment"} },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
-                    { $sort: { count: -1 } }
+                    { $sort: { data: 1} }
                 ],
                 suppliers: [
-                    { $group: { _id: "$Supplier_Name", count: { $sum: 1 } } },
+                    { $group: { _id: "$Supplier_Name" } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
-                    { $sort: { count: -1 } }
+                    { $sort: { data: 1} }
                 ]
             }
         }
@@ -196,6 +208,10 @@ const detailAnalysisUSD = async (req, res) => {
     const validated_req = req.validated_req;
     const DB = whichDB(validated_req.chapter_code);
     if(!DB) return HttpException(res, 400, "Invalid Chapter Code");
+    if(!validated_req.search_text.hs_code){
+        validated_req.search_text.hs_code = [];
+        validated_req.search_text.hs_code.push(validated_req.chapter_code);
+    }
     const subscription = await checkSubscription(req.user.id, validated_req);
     if (!subscription) return HttpException(res, 400, "Invalid Subscription");
 
@@ -244,4 +260,4 @@ const detailAnalysisUSD = async (req, res) => {
     }
 }
 
-export { sortAnalysis, detailAnalysis, detailAnalysisUSD }
+export { sortAnalysis, detailAnalysis, detailAnalysisUSD , uniqueAnalysis }
