@@ -138,6 +138,59 @@ const detailAnalysis = async (req, res) => {
     }
 }
 
+const uniqueAnalysis = async (req, res) => {
+
+    const validated_req = req.validated_req;
+    const DB = whichDB(validated_req.chapter_code);
+    if(!DB) return HttpException(res, 400, "Invalid Chapter Code");
+    const subscription = await checkSubscription(req.user.id, validated_req);
+    if (!subscription) return HttpException(res, 400, "Invalid Subscription");
+
+    const query = importQuery(validated_req);
+
+    const pipeline = [
+        {
+            $match: query,
+        },
+        {
+            $facet: {
+                importers: [
+                    { $group: { _id: "$Importer_Name", count: { $sum: 1 } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ],
+                countries: [
+                    { $group: { _id: "$Country", count: { $sum: 1 } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ],
+                ports: [
+                    { $group: { _id: "$Indian_Port", count: { $sum: 1 } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ],
+                portShipment: [
+                    { $group: { _id: "$Port_Of_Shipment", count: { $sum: 1 } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ],
+                suppliers: [
+                    { $group: { _id: "$Supplier_Name", count: { $sum: 1 } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ]
+            }
+        }
+    ];
+
+    try {
+        const data = await DB.aggregate(pipeline);
+        res.json(data[0]);
+    } catch (error) {
+        return HttpException(res, 404, error, {});
+    }
+}
+
 const detailAnalysisUSD = async (req, res) => {
 
     const validated_req = req.validated_req;
