@@ -19,7 +19,7 @@ export const isDownloadSub = async (req, res, next) => {
     const query = importQuery(validated_req)
     const total_records = await DB.countDocuments(query);
 
-    if (page_size > customer.download_import_sub) {
+    if (total_records > customer.download_import_sub) {
         return HttpException(res, 400, 'Download Subscription Not Enough');
     }
 
