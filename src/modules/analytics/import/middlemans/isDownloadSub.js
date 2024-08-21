@@ -9,7 +9,6 @@ export const isDownloadSub = async (req, res, next) => {
     const DB = whichDB(validated_req.chapter_code);
     if(!DB) return HttpResponse(res, 400, 'Invalid Chapter Code', {});
     const customer = req.customer;
-
     if(!validated_req.download_sub) return next();
 
     if(customer.download_import_sub < 1) {
@@ -30,7 +29,7 @@ export const isDownloadSub = async (req, res, next) => {
     if(!searchResult.length) {
         return HttpException(res, 400, 'No records found');
     }
-    customer.download_import_sub -= page_size;
+    customer.download_import_sub -= searchResult.length;
     await customer.save();
 
     return HttpResponse(res, 200, 'records fetched successfully', {total_records, searchResult});
