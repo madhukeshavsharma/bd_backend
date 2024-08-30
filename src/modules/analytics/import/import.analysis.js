@@ -40,8 +40,8 @@ const sortAnalysis = async (req, res) => {
         validated_req.search_text.hs_code = [];
         validated_req.search_text.hs_code.push(validated_req.chapter_code);
     }
-    const subscription = await checkSubscription(req.user.id, validated_req);
-    if (!subscription) return HttpException(res, 400, "Invalid Subscription");
+    // const subscription = await checkSubscription(req.user.id, validated_req);
+    // if (!subscription) return HttpException(res, 400, "Invalid Subscription");
 
     const query = importQuery(validated_req);
 
@@ -57,7 +57,7 @@ const sortAnalysis = async (req, res) => {
                     Importer_Name: { $addToSet: '$Importer_Name' },
                     Port_Of_Shipment: { $addToSet: '$Port_Of_Shipment' },
                     Indian_Port: { $addToSet: '$Indian_Port' },
-                    Supplier_Name: { $addToSet: '$Supplier_Name' }
+                    Exporter: { $addToSet: '$Exporter_Name' }
                 },
             },
             {
@@ -67,7 +67,7 @@ const sortAnalysis = async (req, res) => {
                     Importer: { $size: '$Importer_Name' },
                     Port_Of_Shipment: { $size: '$Port_Of_Shipment' },
                     Indian_Port: { $size: '$Indian_Port' },
-                    Exporter: { $size: '$Supplier_Name' }
+                    Exporter: { $size: '$Exporter_Name' }
                 },
             }
         ]
@@ -80,8 +80,13 @@ const sortAnalysis = async (req, res) => {
             DB.aggregate(pipeline).exec()
         ]);
         const responseData = {
-            Shipments: totalShipments,
-            ...data[0]
+            status:"true",
+            status_code:200,
+            message:"Record fetched successfully",
+            result : {
+                        Shipments: totalShipments,
+                        ...data[0]
+                    }
         }
         res.status(200).json(responseData);
     } catch (error) {
@@ -129,8 +134,8 @@ const detailAnalysis = async (req, res) => {
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ],
-                suppliers: [
-                    { $group: { _id: "$Supplier_Name", count: { $sum: 1 } } },
+                exporters: [
+                    { $group: { _id: "$Exporter_Name", count: { $sum: 1 } } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ]
@@ -140,7 +145,13 @@ const detailAnalysis = async (req, res) => {
 
     try {
         const data = await DB.aggregate(pipeline);
-        res.json(data[0]);
+        const responseData = {
+            status: "true",
+            status_code: 200,
+            message: "Record fetched successfully",
+            result : data[0]
+        }
+        res.json(responseData);
     } catch (error) {
         return HttpException(res, 404, error, {});
     }
@@ -155,8 +166,8 @@ const uniqueAnalysis = async (req, res) => {
         validated_req.search_text.hs_code = [];
         validated_req.search_text.hs_code.push(validated_req.chapter_code);
     }
-    const subscription = await checkSubscription(req.user.id, validated_req);
-    if (!subscription) return HttpException(res, 400, "Invalid Subscription");
+    // const subscription = await checkSubscription(req.user.id, validated_req);
+    // if (!subscription) return HttpException(res, 400, "Invalid Subscription");
 
     const query = importQuery(validated_req);
 
@@ -176,8 +187,8 @@ const uniqueAnalysis = async (req, res) => {
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { data: 1} }
                 ],
-                suppliers: [
-                    { $group: { _id: "$Supplier_Name" } },
+                exporters: [
+                    { $group: { _id: "$Exporter_Name" } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { data: 1} }
                 ]
@@ -187,7 +198,13 @@ const uniqueAnalysis = async (req, res) => {
 
     try {
         const data = await DB.aggregate(pipeline);
-        res.json(data[0]);
+        const responseData = {
+            status: "true",
+            status_code: 200,
+            message: "Record fetched successfully",
+            result : data[0]
+        }
+        res.json(responseData);
     } catch (error) {
         return HttpException(res, 404, error, {});
     }
@@ -233,8 +250,8 @@ const detailAnalysisUSD = async (req, res) => {
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ],
-                suppliers: [
-                    { $group: { _id: "$Supplier_Name", count: { $sum: "$Total_Value_USD" } } },
+                exporters: [
+                    { $group: { _id: "$Exporter", count: { $sum: "$Total_Value_USD" } } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ]
@@ -244,7 +261,13 @@ const detailAnalysisUSD = async (req, res) => {
 
     try {
         const data = await DB.aggregate(pipeline);
-        res.json(data[0]);
+        const responseData = {
+            status: "true",
+            status_code: 200,
+            message: "Record fetched successfully",
+            result : data[0]
+        }
+        res.json(responseData);
     } catch (error) {
         return HttpException(res, 404, error, {});
     }

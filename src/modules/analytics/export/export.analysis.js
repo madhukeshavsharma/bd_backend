@@ -1,56 +1,48 @@
-import { Import } from './import.model.js';
-import {HttpException} from "../../../handlers/HttpException.js";
-import {search_import} from "./model.js";
-import { Customer } from '../../user/customer.model.js';
-import { set } from 'mongoose';
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
+
+import { HttpException } from "../../../handlers/HttpException.js";
+import { HttpResponse } from "../../../handlers/HttpResponse.js";
+import { Customer } from "../../user/customer.model.js";
+import { exportQuery } from './utils/exportQuery.js';
+import { whichDB } from './utils/whichDB.js';
+
+
+async function checkSubscription(id, validated_req) {
+    const customer = await Customer.findById(id);
+
+    if (!customer) return false;
+
+    return (isSubscribed(validated_req.search_text.hs_code, customer.hsn_codes)&& new Date(customer.hsn_codes_valid_upto) >= new Date())
 }
 
-const generateQuery = (validated_req) => {
+function isSubscribed(A,B) {
 
-    const { search_text, filters, duration } = validated_req;
-    const { hs_code, product_name } = search_text;
-    const { start_date, end_date } = duration;
+    let subscription = false;
 
-    const query = {
-        HS_Code: hs_code ? { $regex: new RegExp('^' + hs_code, 'i') } : '',
-        Item_Description: product_name ? { $regex: new RegExp(escapeRegExp(product_name), 'i') } : '',
+    for (let i = 0; i < A.length; i++) {
+        subscription = false;
 
-        Buyer_Name: filters && filters.buyer_name ? { $regex: new RegExp(escapeRegExp(filters.buyer_name), 'i') } : '',
-        Exporter_Name: filters && filters.supplier_name ? { $regex: new RegExp(escapeRegExp(filters.supplier_name), 'i') } : '',
-        Port_of_Loading: filters && filters.port_code ? { $regex: new RegExp(escapeRegExp(filters.port_code), 'i') } : '',
-        UQC: filters && filters.unit ? { $regex: new RegExp(escapeRegExp(filters.unit), 'i') } : '',
-        Country: filters && filters.country ? { $regex: new RegExp(escapeRegExp(filters.country), 'i') } : '',
-
-        Date: { $gte: start_date, $lte: end_date }
-    };
-
-    Object.keys(query).forEach((key) => {
-        if (!query[key] || (query[key].$regex && query[key].$regex.source === "(?:)")) {
-            delete query[key];
+        for (let j = 0; j < B.length; j++) {
+            if (A[i].startsWith(B[j])) {
+                subscription = true;
+            }
         }
-    });
-
-    return query;
+        if (!subscription) {
+            return subscription;
+        }
+    }
+    return subscription;
 }
 
 const sortAnalysis = async (req, res) => {
 
-    const validation = search_import.validate(req.body);
-    if (validation.error)
-        return HttpException(
-            res,
-            400,
-            validation.error.details[0].message,
-            {}
-        );
-    const validated_req = validation.value;
+    const validated_req = req.validated_req;
+    const DB = whichDB(validated_req.chapter_code);
+    if(!DB) return HttpResponse(res, 400, 'Invalid Chapter Code', {});
 
-    const subscription = await checkSubscription(res, req.user.id, validated_req);
-    if (!subscription) return new HttpException(res, 400, "Invalid Subscription");
+    // const subscription = await checkSubscription(req.user.id, validated_req);
+    // if (!subscription) return HttpException(res, 400, "Invalid Subscription");
 
-    const query = generateQuery(validated_req);
+    const query = exportQuery(validated_req);
 
     try {
         const pipeline = [
@@ -58,254 +50,219 @@ const sortAnalysis = async (req, res) => {
                 $match: query,
             },
             {
+
                 $group: {
                     _id: null,
-                    Country: { $addToSet: '$Country' },
-                    Exporter_Name: { $addToSet: '$Exporter_Name' },
-                    Port_of_Loading: { $addToSet: '$Port_of_Loading' },
-                    Port_of_Discharge: { $addToSet: '$Port_of_Discharge' },
-                    Buyer_Name: { $addToSet: '$Buyer_Name' },
-                    
+                    Country: {$addToSet: '$Country'},
+                    Exporter_Name: {$addToSet: '$Exporter_Name'},
+                    Port_of_Loading: {$addToSet: '$Port_of_Loading'},
+                    Port_of_Discharge: {$addToSet: '$Port_of_Discharge'},
+                    Importer_Name: {$addToSet: '$Importer_Name'},
                 },
             },
             {
                 $project: {
                     _id: 0,
-                    Country: { $size: '$Country' },
-                    Exporter: { $size: '$Exporter_Name' },
-                    Port_of_Loading: { $size: '$Port_of_Loading' },
-                    Port_of_Discharge: { $size: '$Port_of_Discharge' },
-                    Importer: { $size: '$Buyer_Name' },
-                    
+                    Country: {$size: '$Country'},
+                    Exporter: {$size: '$Exporter_Name'},
+                    Port_of_Loading: {$size: '$Port_of_Loading'},
+                    Port_of_Discharge: {$size: '$Port_of_Discharge'},
+                    Importer: {$size: '$Importer_Name'},
                 },
             }
         ]
-        const totalShipments = await Import.countDocuments(query);
-        const data = await Import.aggregate(pipeline);
+
+        // const totalShipments = await Export.estimatedDocumentCount(query);
+        // const data = await DB.aggregate(pipeline);
+
+        const [totalShipments, data] = await Promise.all([
+            DB.countDocuments(query),
+            DB.aggregate(pipeline).exec()
+        ]);
 
         const responseData = {
-            Shipments: totalShipments,
-            ...data[0]
+            status:true,
+            statusCode: 200,
+            message: 'Record fetched successfully',
+            result :{Shipments: totalShipments,
+            ...data[0]}
         }
         res.status(200).json(responseData);
     } catch (error) {
-        res.status(404).json({ message: error.message });
+        res.status(404).json({message: error.message});
     }
 }
+const uniqueAnalysis = async (req, res) => {
 
-function generatePipeline(field, query, uniqueMatch) {
-    return  [
+    const validated_req = req.validated_req;
+    const DB = whichDB(validated_req.chapter_code);
+    if(!DB) return HttpException(res, 400, "Invalid Chapter Code");
+    if(!validated_req.search_text.hs_code){
+        validated_req.search_text.hs_code = [];
+        validated_req.search_text.hs_code.push(validated_req.chapter_code);
+    }
+    // const subscription = await checkSubscription(req.user.id, validated_req);
+    // if (!subscription) return HttpException(res, 400, "Invalid Subscription");
+
+    const query = exportQuery(validated_req);
+
+    const pipeline = [
         {
-            $match: { $and: [query, uniqueMatch] }, 
+            $match: query,
         },
         {
-            $group: {
-                _id: `$${field}`, 
-                count: { $sum: 1 }, 
-            },
-        },
-        {
-            $project: {
-                _id: 0, 
-                data: "$_id", 
-                count: 1, 
-            },
-        },
-        {
-            $sort: { count: -1 },
+            $facet: {
+                importers: [
+                    { $group: { _id: "$Importer_Name" } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { data: 1} }
+                ],
+                countries: [
+                    { $group: { _id: "$Country" } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { data: 1} }
+                ],
+                exporters: [
+                    { $group: { _id: "$Exporter_Name" } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { data: 1} }
+                ]
+            }
         }
     ];
+
+    try {
+        const data = await DB.aggregate(pipeline);
+        const responseData = {
+            status: "true",
+            status_code: 200,
+            message: "Record fetched successfully",
+            result : data[0]
+        }
+        res.json(responseData);
+    } catch (error) {
+        return HttpException(res, 404, error, {});
+    }
 }
 
 const detailAnalysis = async (req, res) => {
-    const validation = search_import.validate(req.body);
-    if (validation.error)
-        return HttpException(
-            res,
-            400,
-            validation.error.details[0].message,
-            {}
-        );
-    const validated_req = validation.value;
 
-    const subscription = await checkSubscription(res, req.user.id, validated_req);
-    if (!subscription) return new HttpException(res, 400, "Invalid Subscription");
+    const validated_req = req.validated_req;
+    const DB = whichDB(validated_req.chapter_code);
+    if(!DB) return HttpResponse(res, 400, 'Invalid Chapter Code');
 
-    const query = generateQuery(validated_req);
-    console.log(query)
-    const {
-        countryPipeline,
-        buyerPipeline,
-        exporterPipeline,
-        portOfLoadingPipeline,
-        portOfDischargePipeline
-    } = getDetailAnalysisDataPipelines(query, generatePipeline);
+    const subscription = await checkSubscription(req.user.id, validated_req);
+    if (!subscription) return HttpException(res, 400, "Invalid Subscription");
+
+    const query = exportQuery(validated_req);
+
+    const pipeline = [
+        {
+            $match: query,
+        },
+        {
+            $facet: {
+                countries: [
+                    { $group: { _id: "$Country", count: { $sum: 1 } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ],
+                importers: [
+                    { $group: { _id: "$Importer_Name", count: { $sum: 1 } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ],
+                exporters: [
+                    { $group: { _id: "$Exporter_Name", count: { $sum: 1 } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ],
+                port_of_loading: [
+                    { $group: { _id: "$Port_of_Loading", count: { $sum: 1 } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ],
+                port_of_discharge: [
+                    { $group: { _id: "$Port_of_Discharge", count: { $sum: 1 } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ]
+            }
+        }
+    ]
 
     try {
-
-        Promise.all([ 
-            Import.aggregate(countryPipeline), 
-            Import.aggregate(buyerPipeline), 
-            Import.aggregate(exporterPipeline), 
-            Import.aggregate(portOfLoadingPipeline), 
-            Import.aggregate(portOfDischargePipeline)]).then((values) => {
-                
-                setTimeout(() => {
-                res.json({
-                    Country: values[0],
-                    Importer: values[1],
-                    Exporter: values[2],
-                    Port_of_Loading: values[3],
-                    Port_of_Discharge: values[4]
-                })}, 10000);
-            });
-        
-        
-        
-        
-        
-
-        
-        
-        
-        
-        
-        
-        
-
-    } catch (error) {
-        res.status(404).json({ message: error.message });
-    }
-}
-
-function generateUSDPipeline(field, query, uniqueMatch) {
-    return  [
-        {
-            $match: { $and: [query, uniqueMatch] }, 
-        },
-        {
-            $group: {
-                _id: `$${field}`, 
-                count: { $sum: '$Total_Value_USD' }, 
-            },
-        },
-        {
-            $project: {
-                _id: 0, 
-                data: "$_id", 
-                count: 1, 
-            },
-        },
-        {
-            $sort: { count: -1 },
+        const data = await DB.aggregate(pipeline);
+        const responseData = {
+            status:true,
+            statusCode: 200,
+            message: 'Record fetched successfully',
+            result : data[0]
         }
-    ];
+        res.status(200).json(responseData);
+    } catch (error) {
+        return HttpException(res, 404, error, {});
+    }
 }
 
 const detailAnalysisUSD = async (req, res) => {
-    const validation = search_import.validate(req.body);
-    if (validation.error)
-        return HttpException(
-            res,
-            400,
-            validation.error.details[0].message,
-            {}
-        );
-    const validated_req = validation.value;
 
-    const subscription = await checkSubscription(res, req.user.id, validated_req);
-    if (!subscription) return new HttpException(res, 400, "Invalid Subscription");
+    const validated_req = req.validated_req;
+    const DB = whichDB(validated_req.chapter_code);
+    if(!DB) return HttpResponse(res, 400, 'Invalid Chapter Code', {});
 
-    const query = generateQuery(validated_req);
-        console.log(query)
-    const {
-        countryPipeline,
-        buyerPipeline,
-        exporterPipeline,
-        portOfLoadingPipeline,
-        portOfDischargePipeline
-    } = getDetailAnalysisDataPipelines(query, generateUSDPipeline);
+    const subscription = await checkSubscription(req.user.id, validated_req);
+    if (!subscription) return HttpException(res, 400, "Invalid Subscription");
+
+    const query = exportQuery(validated_req);
+
+    const pipeline = [
+        {
+            $match: query,
+        },
+        {
+            $facet: {
+                countries: [
+                    { $group: { _id: "$Country", count: { $sum: "$Total_Value_USD" } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ],
+                importers: [
+                    { $group: { _id: "$Importer_Name", count: { $sum: "$Total_Value_USD" } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ],
+                exporters: [
+                    { $group: { _id: "$Exporter_Name", count: { $sum: "$Total_Value_USD" } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ],
+                port_of_loading: [
+                    { $group: { _id: "$Port_of_Loading", count: { $sum: "$Total_Value_USD" } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ],
+                port_of_discharge: [
+                    { $group: { _id: "$Port_of_Discharge", count: { $sum: "$Total_Value_USD" } } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { count: -1 } }
+                ]
+            }
+        }
+    ]
 
     try {
-
-        
-
-        Promise.all([ 
-            Import.aggregate(countryPipeline), 
-            Import.aggregate(buyerPipeline), 
-            Import.aggregate(exporterPipeline), 
-            Import.aggregate(portOfLoadingPipeline), 
-            Import.aggregate(portOfDischargePipeline)]).then((values) => {
-                
-                setTimeout(() => {
-                res.json({
-                    Country: values[0],
-                    Importer: values[1],
-                    Exporter: values[2],
-                    Port_of_Loading: values[3],
-                    Port_of_Discharge: values[4]
-                })}, 9000);
-            });
-        
-        
-        
-        
-        
-        
-        
-
-    } catch (error) {
-        res.status(404).json({ message: error.message });
-    }
-}
-
-function getDetailAnalysisDataPipelines(query, pipelineGenerator) {
-    const uniqueCountryMatch = { Country: { $exists: true } };
-    const uniqueBuyerMatch = { Buyer_Name: { $exists: true } };
-    const uniqueExporterMatch = { Exporter_Name: { $exists: true } };
-    const uniquePortOfLoadingMatch = { Port_of_Loading: { $exists: true } };
-    const uniquePortOfDischargeMatch = { Port_of_Discharge: { $exists: true } };
-
-    const countryPipeline = pipelineGenerator('Country', query, uniqueCountryMatch);
-    const buyerPipeline = pipelineGenerator('Buyer_Name', query, uniqueBuyerMatch);
-    const exporterPipeline = pipelineGenerator('Exporter_Name', query, uniqueExporterMatch);
-    const portOfLoadingPipeline = pipelineGenerator('Port_of_Loading', query, uniquePortOfLoadingMatch);
-    const portOfDischargePipeline = pipelineGenerator('Port_of_Discharge', query, uniquePortOfDischargeMatch);
-
-    return {
-        countryPipeline,
-        buyerPipeline,
-        exporterPipeline,
-        portOfLoadingPipeline,
-        portOfDischargePipeline
-    }
-}
-
-async function checkSubscription(res, id, validated_req) {
-    const customer= await Customer.findOne({_id:id});
-    console.log(id);
-    console.log(customer);
-    if (!customer) return false;
-
-    if (
-        !( customer.export_hsn_codes &&
-        customer.export_hsn_codes.length > 0 &&
-        
-        isSubscribedHSCode(customer, validated_req.search_text.hs_code) &&
-        new Date(customer.export_hsn_codes_valid_upto) >= new Date() )
-      ) return false;
-
-      return true;
-}
-
-function isSubscribedHSCode(customer, hs_code) {
-    for (let code of customer.export_hsn_codes) {
-        if (hs_code.startsWith(code)) {
-            return true;
+        const data = await DB.aggregate(pipeline);
+        const responseData = {
+            status:true,
+            statusCode: 200,
+            message: 'Record fetched successfully',
+            result : data[0]
         }
+        res.status(200).json(responseData);
+    } catch (error) {
+        return HttpException(res, 404, error, {});
     }
-    return false;
 }
 
-
-export { sortAnalysis, detailAnalysis, detailAnalysisUSD };
+export { sortAnalysis, detailAnalysis, detailAnalysisUSD, uniqueAnalysis }

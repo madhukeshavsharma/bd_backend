@@ -3,20 +3,17 @@ function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function importQuery(validated_req) {
+function exportQuery(validated_req) {
 
     const { search_text, filters, duration } = validated_req;
     const { hs_code, product_name } = search_text;
     const { start_date, end_date } = duration;
 
     const query = {
-        // HS_Code: hs_code ? { $regex: new RegExp('^' + hs_code, 'i') } : '',
-
         HS_Code: hs_code && hs_code.length
-            ? { $in: hs_code.map(hc => new RegExp('^' + hc, 'i')) }
+            ? { $in: hs_code.map(hc => new RegExp('^'+hc, 'i')) }
             : '',
-
-
+            
         Item_Description: product_name && product_name.length
             ? { $in: product_name.map(pn => new RegExp(escapeRegExp(pn), 'i')) }
             : '',
@@ -27,7 +24,7 @@ function importQuery(validated_req) {
         Exporter_Name: filters && filters.supplier_name && filters.supplier_name.length
             ? { $in: filters.supplier_name.map(sn => new RegExp(escapeRegExp(sn), 'i')) }
             : '',
-        Indian_Port: filters && filters.port_code && filters.port_code.length
+        Port_of_Loading: filters && filters.port_code && filters.port_code.length
             ? { $in: filters.port_code.map(pc => new RegExp(escapeRegExp(pc), 'i')) }
             : '',
         UQC: filters && filters.unit && filters.unit.length
@@ -39,7 +36,7 @@ function importQuery(validated_req) {
 
         Date: { $gte: start_date, $lte: end_date }
     };
-    console.log(query)
+
     Object.keys(query).forEach((key) => {
         if (!query[key] || (query[key].$regex && query[key].$regex.source === "(?:)")) {
             delete query[key];
@@ -49,4 +46,4 @@ function importQuery(validated_req) {
     return query
 }
 
-export { importQuery, escapeRegExp }
+export { exportQuery, escapeRegExp }
