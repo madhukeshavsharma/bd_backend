@@ -124,12 +124,12 @@ const detailAnalysis = async (req, res) => {
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ],
-                ports: [
+                port_of_discharge: [
                     { $group: { _id: "$Indian_Port", count: { $sum: 1 } } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ],
-                portShipment: [
+                port_of_Loading: [
                     { $group: { _id: "$Port_Of_Shipment", count: { $sum: 1 } } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
@@ -240,12 +240,12 @@ const detailAnalysisUSD = async (req, res) => {
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ],
-                ports: [
+                port_of_discharge: [
                     { $group: { _id: "$Indian_Port", count: { $sum: "$Total_Value_USD" } } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ],
-                portShipment: [
+                port_of_Loading: [
                     { $group: { _id: "$Port_Of_Shipment", count: { $sum: "$Total_Value_USD" } } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }

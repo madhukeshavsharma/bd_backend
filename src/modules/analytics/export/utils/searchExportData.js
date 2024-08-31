@@ -8,7 +8,7 @@ export const fetchExportData = async (validated_req, all,DB) => {
 
    
     const searchResult = await DB.find(query)
-            .select(!all?"Item_Description HS_Code Quantity UQC Country Date":"")
+            .select(!all?"Item_Description HS_Code Quantity UQC Country Date Month Importer_Name Exporter_Name":"")
             .skip(skip).limit(parseInt(page_size)).lean();
 
     

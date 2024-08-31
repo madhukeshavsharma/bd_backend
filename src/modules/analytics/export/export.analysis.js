@@ -11,7 +11,7 @@ async function checkSubscription(id, validated_req) {
 
     if (!customer) return false;
 
-    return (isSubscribed(validated_req.search_text.hs_code, customer.hsn_codes)&& new Date(customer.hsn_codes_valid_upto) >= new Date())
+    return (isSubscribed(validated_req.search_text.hs_code, customer.export_hsn_codes)&& new Date(customer.export_hsn_codes_valid_upto) >= new Date())
 }
 
 function isSubscribed(A,B) {
@@ -38,7 +38,10 @@ const sortAnalysis = async (req, res) => {
     const validated_req = req.validated_req;
     const DB = whichDB(validated_req.chapter_code);
     if(!DB) return HttpResponse(res, 400, 'Invalid Chapter Code', {});
-
+    if(!validated_req.search_text.hs_code){
+        validated_req.search_text.hs_code = [];
+        validated_req.search_text.hs_code.push(validated_req.chapter_code);
+    }
     // const subscription = await checkSubscription(req.user.id, validated_req);
     // if (!subscription) return HttpException(res, 400, "Invalid Subscription");
 
@@ -150,7 +153,10 @@ const detailAnalysis = async (req, res) => {
     const validated_req = req.validated_req;
     const DB = whichDB(validated_req.chapter_code);
     if(!DB) return HttpResponse(res, 400, 'Invalid Chapter Code');
-
+    if(!validated_req.search_text.hs_code){
+        validated_req.search_text.hs_code = [];
+        validated_req.search_text.hs_code.push(validated_req.chapter_code);
+    }
     const subscription = await checkSubscription(req.user.id, validated_req);
     if (!subscription) return HttpException(res, 400, "Invalid Subscription");
 
@@ -210,7 +216,10 @@ const detailAnalysisUSD = async (req, res) => {
     const validated_req = req.validated_req;
     const DB = whichDB(validated_req.chapter_code);
     if(!DB) return HttpResponse(res, 400, 'Invalid Chapter Code', {});
-
+    if(!validated_req.search_text.hs_code){
+        validated_req.search_text.hs_code = [];
+        validated_req.search_text.hs_code.push(validated_req.chapter_code);
+    }
     const subscription = await checkSubscription(req.user.id, validated_req);
     if (!subscription) return HttpException(res, 400, "Invalid Subscription");
 
