@@ -251,7 +251,7 @@ const detailAnalysisUSD = async (req, res) => {
                     { $sort: { count: -1 } }
                 ],
                 exporters: [
-                    { $group: { _id: "$Exporter", count: { $sum: "$Total_Value_USD" } } },
+                    { $group: { _id: "$Exporter_Name", count: { $sum: "$Total_Value_USD" } } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ]
