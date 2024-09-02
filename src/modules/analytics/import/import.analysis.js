@@ -57,7 +57,7 @@ const sortAnalysis = async (req, res) => {
                     Importer_Name: { $addToSet: '$Importer_Name' },
                     Port_Of_Shipment: { $addToSet: '$Port_Of_Shipment' },
                     Indian_Port: { $addToSet: '$Indian_Port' },
-                    Exporter: { $addToSet: '$Exporter_Name' }
+                    Exporter_Name: { $addToSet: '$Exporter_Name' }
                 },
             },
             {
@@ -129,7 +129,7 @@ const detailAnalysis = async (req, res) => {
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ],
-                port_of_Loading: [
+                port_of_loading: [
                     { $group: { _id: "$Port_Of_Shipment", count: { $sum: 1 } } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
@@ -245,7 +245,7 @@ const detailAnalysisUSD = async (req, res) => {
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ],
-                port_of_Loading: [
+                port_of_loading: [
                     { $group: { _id: "$Port_Of_Shipment", count: { $sum: "$Total_Value_USD" } } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
