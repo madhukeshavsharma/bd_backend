@@ -7,8 +7,8 @@ const search_text = Joi.object({
 })
 
 const filters = Joi.object({
-  buyer_name: Joi.array().items(Joi.string()),
-  supplier_name: Joi.array().items(Joi.string()),
+  importer_name: Joi.array().items(Joi.string()),
+  exporter_name: Joi.array().items(Joi.string()),
   port_code: Joi.array().items(Joi.string()),
   unit: Joi.array().items(Joi.string()),
   country: Joi.array().items(Joi.string())

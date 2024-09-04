@@ -21,11 +21,11 @@ function importQuery(validated_req) {
             ? { $in: product_name.map(pn => new RegExp(escapeRegExp(pn), 'i')) }
             : '',
 
-        Importer_Name: filters && filters.buyer_name && filters.buyer_name.length
-            ? { $in: filters.buyer_name.map(bn => new RegExp(escapeRegExp(bn), 'i')) }
+        Importer_Name: filters && filters.importer_name && filters.importer_name.length
+            ? { $in: filters.importer_name.map(bn => new RegExp(escapeRegExp(bn), 'i')) }
             : '',
-        Exporter_Name: filters && filters.supplier_name && filters.supplier_name.length
-            ? { $in: filters.supplier_name.map(sn => new RegExp(escapeRegExp(sn), 'i')) }
+        Exporter_Name: filters && filters.exporter_name && filters.exporter_name.length
+            ? { $in: filters.exporter_name.map(sn => new RegExp(escapeRegExp(sn), 'i')) }
             : '',
         Indian_Port: filters && filters.port_code && filters.port_code.length
             ? { $in: filters.port_code.map(pc => new RegExp(escapeRegExp(pc), 'i')) }
