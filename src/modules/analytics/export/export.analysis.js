@@ -207,6 +207,7 @@ const detailAnalysis = async (req, res) => {
         }
         res.status(200).json(responseData);
     } catch (error) {
+        console.log(error)
         return HttpException(res, 404, error, {});
     }
 }
