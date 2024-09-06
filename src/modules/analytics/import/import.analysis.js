@@ -55,8 +55,8 @@ const sortAnalysis = async (req, res) => {
                     _id: null,
                     Country: { $addToSet: '$Country' },
                     Importer_Name: { $addToSet: '$Importer_Name' },
-                    Port_Of_Shipment: { $addToSet: '$Port_Of_Shipment' },
-                    Indian_Port: { $addToSet: '$Indian_Port' },
+                    Port_of_Loading: { $addToSet: '$Port_of_Loading' },
+                    Port_of_Discharge: { $addToSet: '$Port_of_Discharge' },
                     Exporter_Name: { $addToSet: '$Exporter_Name' }
                 },
             },
@@ -65,8 +65,8 @@ const sortAnalysis = async (req, res) => {
                     _id: 0,
                     Country: { $size: '$Country' },
                     Importer: { $size: '$Importer_Name' },
-                    Port_Of_Shipment: { $size: '$Port_Of_Shipment' },
-                    Indian_Port: { $size: '$Indian_Port' },
+                    Port_of_Loading: { $size: '$Port_of_Loading' },
+                    Port_of_Discharge: { $size: '$Port_of_Discharge' },
                     Exporter: { $size: '$Exporter_Name' }
                 },
             }
@@ -125,12 +125,12 @@ const detailAnalysis = async (req, res) => {
                     { $sort: { count: -1 } }
                 ],
                 port_of_discharge: [
-                    { $group: { _id: "$Indian_Port", count: { $sum: 1 } } },
+                    { $group: { _id: "$Port_of_Discharge", count: { $sum: 1 } } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ],
                 port_of_loading: [
-                    { $group: { _id: "$Port_Of_Shipment", count: { $sum: 1 } } },
+                    { $group: { _id: "$Port_of_Loading", count: { $sum: 1 } } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ],
@@ -241,12 +241,12 @@ const detailAnalysisUSD = async (req, res) => {
                     { $sort: { count: -1 } }
                 ],
                 port_of_discharge: [
-                    { $group: { _id: "$Indian_Port", count: { $sum: "$Total_Value_USD" } } },
+                    { $group: { _id: "$Port_of_Discharge", count: { $sum: "$Total_Value_USD" } } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ],
                 port_of_loading: [
-                    { $group: { _id: "$Port_Of_Shipment", count: { $sum: "$Total_Value_USD" } } },
+                    { $group: { _id: "$Port_of_Loading", count: { $sum: "$Total_Value_USD" } } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { count: -1 } }
                 ],

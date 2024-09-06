@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const importSchema = new mongoose.Schema({
     Type: { type: String, default: "NA" },
-    Indian_Port: { type: String, default: "NA" },
+    Port_of_Discharge: { type: String, default: "NA" },
     Mode_Of_Shipment: { type: String, default: "NA" },
     Shipment_ID: { type: String, default: "NA" },
     Date: { type: Date, default: null },
@@ -25,7 +25,7 @@ const importSchema = new mongoose.Schema({
     CHA_Name: { type: String, default: "NA" },
     IEC: { type: String, default: "NA" },
     Importer_Name: { type: String, default: "NA" },
-    Port_Of_Shipment: { type: String, default: "NA" },
+    Port_of_Loading: { type: String, default: "NA" },
     Exporter_Name: { type: String, default: "NA" },
     Exporter_Address: { type: String, default: "NA" },
     Importer_Address: { type: String, default: "NA" },

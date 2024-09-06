@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 export async function connectdb() {
   try {
     
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(MONGO_URI,{enableUtf8Validation:false});
     
     return true;
   } catch (error) {

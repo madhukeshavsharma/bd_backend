@@ -27,7 +27,7 @@ function importQuery(validated_req) {
         Exporter_Name: filters && filters.exporter_name && filters.exporter_name.length
             ? { $in: filters.exporter_name.map(sn => new RegExp(escapeRegExp(sn), 'i')) }
             : '',
-        Indian_Port: filters && filters.port_code && filters.port_code.length
+        Port_of_Discharge: filters && filters.port_code && filters.port_code.length
             ? { $in: filters.port_code.map(pc => new RegExp(escapeRegExp(pc), 'i')) }
             : '',
         UQC: filters && filters.unit && filters.unit.length
