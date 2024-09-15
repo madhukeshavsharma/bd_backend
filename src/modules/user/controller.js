@@ -20,7 +20,9 @@ import signToken from '../../utilities/jwt/sign_token.js';
 import refreshToken from '../../utilities/jwt/refresh_token.js';
 import moment from 'moment';
 import nodemailer from 'nodemailer';
-import {Admin} from "./admin.model.js";
+import { Admin } from "./admin.model.js";
+import { whichDB } from '../analytics/export/utils/whichDB.js';
+import { whichDB as whichDBImport } from '../analytics/import/utils/whichDB.js';
 // import { Import as Export } from '../analytics/export/import.model.js';
 // import { Import } from '../analytics/import/import.model.js';
 
@@ -52,10 +54,10 @@ export async function updateAdmin(req, res) {
       return HttpException(res, 400, 'Admin not found', {});
     }
     validated_req.id = req.user.id;
-    if(validated_req.password)
+    if (validated_req.password)
       validated_req.password = await encryptPassword(validated_req.password);
     const result = await models.updateAdmin(validated_req);
-    return HttpResponse(res, 200, 'Admin Updated', {admin: result});
+    return HttpResponse(res, 200, 'Admin Updated', { admin: result });
   } catch (error) {
     return InternalServerException(res, error);
   }
@@ -107,32 +109,45 @@ export async function loginAdmin(req, res) {
       refresh_token,
     });
   } catch (error) {
-    
+
     return InternalServerException(res, error);
   }
 }
 
-// export async function deleteData(req, res) {
-//   const hs_code =req.body.hs_code;
-//   const type=req.body.type;
-//   const { start_date, end_date } = req.body.duration;
-//   const query = {HS_Code: hs_code ? { $regex: new RegExp('^' + hs_code, 'i') } : '',
-//   Date: { $gte: start_date, $lte: end_date }
-// };
+export async function deleteData(req, res) {
+  const chapter_code = req.body.chapter_code;
+  const hs_code = req.body.hs_code;
+  const type = req.body.type;
 
-//   if(type==="export"){
-//   const data = await Export.deleteMany(query);
-//   return res.json({message: "Data Deleted",data});
-//   }
+  if (!chapter_code) return HttpException(res, 400, "Chapter Code is required");
+  if(!hs_code) return HttpException(res, 400, "HS Code is required");
+  if (!type) return HttpException(res, 400, "Type is required");
+  const { start_date, end_date } = req.body.duration;
 
-//   if(type==="import"){
-//     const data = await Import.deleteMany(query);
-//     return res.json({message: "Data Deleted",data});
-// };
+  const query = {
+    HS_Code: hs_code ? { $regex: new RegExp('^' + hs_code, 'i') } : '',
+    Date: { $gte: start_date, $lte: end_date }
+  };
 
-//   return res.json({message:"Invalid Type"});
+  if (type === "export") {
+    const DB = whichDB(chapter_code);
+    if (!DB) return HttpException(res, 400, "Invalid Chapter Code");
 
-// }
+    const data = await DB.deleteMany(query);
+    return res.json({ message: "Data Deleted", data });
+  }
+
+  if (type === "import") {
+    const DB = whichDBImport(chapter_code);
+    if (!DB) return HttpException(res, 400, "Invalid Chapter Code");
+
+    const data = await DB.deleteMany(query);
+    return res.json({ message: "Data Deleted", data });
+  };
+
+  return res.json({ message: "Invalid Type" });
+
+}
 
 
 
@@ -142,7 +157,7 @@ export async function updateCustomerAsAdmin(req, res) {
     if (validation.error)
       return HttpException(res, 400, validation.error.details[0].message, {});
     const validated_req = validation.value;
-    
+
     const customer = await models.updateCustomerAsAdmin(validated_req);
     customer.password = undefined;
     return HttpResponse(res, 200, 'Customer Updated', { customer });
@@ -182,7 +197,7 @@ export async function createCustomer(req, res) {
     const validated_req = validation.value;
     const customer_exists = await models.readCustomerByEmail(validated_req.email);
     if (customer_exists) {
-        return HttpException(res, 400, 'Customer already exists', {});
+      return HttpException(res, 400, 'Customer already exists', {});
     }
     if (validated_req.password) {
       validated_req.password = await encryptPassword(validated_req.password);
@@ -322,7 +337,7 @@ export async function resetPassword(req, res) {
       to: customer.email,
       subject: 'Forgot Password Request',
       text: 'This is a email to reset your password. Click the link below to reset your password.',
-      html:` <head>
+      html: ` <head>
       <style>
           body {
               font-family: Arial, sans-serif;
@@ -386,7 +401,7 @@ export async function resetPasswordPatch(req, res) {
     if (password !== confirm_password) {
       return HttpException(res, 400, 'Passwords do not match', {});
     }
-    
+
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_PRIVATE_KEY);
 
     const customer = await models.readCustomerById(decoded.id);
