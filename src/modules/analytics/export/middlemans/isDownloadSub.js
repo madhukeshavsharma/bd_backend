@@ -18,19 +18,25 @@ export const isDownloadSub = async (req, res, next) => {
 
     const { page_index, page_size } = validated_req.pagination;
     const query = exportQuery(validated_req)
-    const total_records = await DB.estimatedDocumentCount(query);
+    const total_records = await DB.countDocuments(query);
+    const skip = (page_index - 1) * page_size;
+    const searchResult = await DB.find(query).skip(skip).limit(parseInt(page_size)).lean();
+    const fetchedDocuments = searchResult.length;
 
-    if (page_size > customer.download_export_sub) {
+
+    if (fetchedDocuments > customer.download_export_sub) {
         return HttpException(res, 400, 'Download Subscription Not Enough');
     }
 
-    const skip = (page_index - 1) * page_size;
-    const searchResult = await DB.find(query).skip(skip).limit(parseInt(page_size)).lean();
     if(!searchResult.length) {
         return HttpException(res, 400, 'No records found');
     }
-    customer.download_export_sub -= page_size;
-    await customer.save();
+   
+        customer.download_export_sub -= fetchedDocuments;
+        await customer.save();
+   
+  
+    
 
     return HttpResponse(res, 200, 'records fetched successfully', {total_records, searchResult});
 
