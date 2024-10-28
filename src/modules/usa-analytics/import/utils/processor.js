@@ -8,10 +8,9 @@ export async function processImportData(filePath) {
 
   if (!jsonData || !jsonData.length) {
     console.log("Error: No data found in the Excel sheet.");
-    return
+    return;
   }
 
-  // Convert data to array of JSON objects
   const jsonResult = jsonData.map(row => {
     const obj = {};
     Object.keys(row).forEach(key => {
@@ -19,6 +18,8 @@ export async function processImportData(filePath) {
       if (key === 'Date') {
 
         let dateStr = row[key]; // e.g., "DD/MM/YYYY" or "DD-MM-YYYY"
+
+        // console.log(dateStr);
 
         // datestr can be in the format "22/03/2022" or "22-03-2022"
         dateStr = dateStr.replace(/-/g, "/"); // replace "-" with "/"

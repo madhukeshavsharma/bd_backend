@@ -11,4 +11,3 @@ customer_routes.post('/search', controller.fetchBuyerData);
 customer_routes.post('/search/:id', authenticate_customer ,controller.fetchBuyerDetails);
 
 export default {customer_routes, admin_routes};
-

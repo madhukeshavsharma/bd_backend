@@ -18,22 +18,20 @@ import bcrypt from 'bcrypt';
 import { UserType } from '../../enum.js';
 import signToken from '../../utilities/jwt/sign_token.js';
 import refreshToken from '../../utilities/jwt/refresh_token.js';
-import moment from 'moment';
+
 import nodemailer from 'nodemailer';
-import { Admin } from "./admin.model.js";
+
 import { whichDB } from '../analytics/export/utils/whichDB.js';
 import { whichDB as whichDBImport } from '../analytics/import/utils/whichDB.js';
-// import { Import as Export } from '../analytics/export/import.model.js';
-// import { Import } from '../analytics/import/import.model.js';
 
 export async function createAdmin(req, res) {
   try {
     const validation = create_admin.validate(req.body);
-    if (validation.error)
-      return HttpException(res, 400, validation.error.details[0].message, {});
+    if (validation.error) return HttpException(res, 400, validation.error.details[0].message, {});
+    
     const validated_req = validation.value;
-
     validated_req.password = await encryptPassword(validated_req.password);
+    
     const admin = await models.createAdmin(validated_req);
     admin.password = undefined;
     return HttpResponse(res, 200, 'Admin created', { admin });
@@ -46,16 +44,15 @@ export async function createAdmin(req, res) {
 export async function updateAdmin(req, res) {
   try {
     const validation = update_admin.validate(req.body);
-    if (validation.error)
-      return HttpException(res, 400, validation.error.details[0].message, {});
+    if (validation.error) return HttpException(res, 400, validation.error.details[0].message, {});
+
     const validated_req = validation.value;
     const admin = await models.readAdminById(req.user.id);
-    if (!admin) {
-      return HttpException(res, 400, 'Admin not found', {});
-    }
+    if (!admin) return HttpException(res, 400, 'Admin not found', {});
+
     validated_req.id = req.user.id;
-    if (validated_req.password)
-      validated_req.password = await encryptPassword(validated_req.password);
+    if (validated_req.password) validated_req.password = await encryptPassword(validated_req.password);
+    
     const result = await models.updateAdmin(validated_req);
     return HttpResponse(res, 200, 'Admin Updated', { admin: result });
   } catch (error) {
@@ -66,6 +63,7 @@ export async function updateAdmin(req, res) {
 export async function getAdmin(req, res) {
   try {
     const admin = await models.readAdminById(req.user.id);
+
     admin.password = undefined;
     return HttpResponse(res, 200, 'Admin Fetched', { admin: admin });
   } catch (error) {
@@ -77,22 +75,17 @@ export async function getAdmin(req, res) {
 export async function loginAdmin(req, res) {
   try {
     const validation = login_admin.validate(req.body);
-    if (validation.error)
-      return HttpException(res, 400, validation.error.details[0].message, {});
+    if (validation.error) return HttpException(res, 400, validation.error.details[0].message, {});
+    
     const validated_req = validation.value;
     const admin = await models.readAdminByEmail(validated_req.email);
-    if (!admin) {
-      return HttpException(res, 400, 'Email or password is wrong', {});
-    }
-
-    const password_match = await bcrypt.compare(
-      validated_req.password,
-      admin.password
-    );
-    if (!password_match) {
-      return HttpException(res, 400, 'Email or password is wrong', {});
-    }
+    if (!admin) return HttpException(res, 400, 'Email or password is wrong', {});
+    
+    const password_match = await bcrypt.compare(validated_req.password, admin.password);
+    if (!password_match) return HttpException(res, 400, 'Email or password is wrong', {});
+    
     admin.password = undefined;
+
     const token = signToken(UserType.ADMIN, {
       id: admin.id,
       user_type: UserType.ADMIN,
@@ -103,13 +96,13 @@ export async function loginAdmin(req, res) {
       id: admin.id,
       user_type: UserType.ADMIN,
     });
+
     return HttpResponse(res, 200, 'Admin created', {
       admin,
       token,
       refresh_token,
     });
   } catch (error) {
-
     return InternalServerException(res, error);
   }
 }
@@ -120,7 +113,7 @@ export async function deleteData(req, res) {
   const type = req.body.type;
 
   if (!chapter_code) return HttpException(res, 400, "Chapter Code is required");
-  if(!hs_code) return HttpException(res, 400, "HS Code is required");
+  if (!hs_code) return HttpException(res, 400, "HS Code is required");
   if (!type) return HttpException(res, 400, "Type is required");
   const { start_date, end_date } = req.body.duration;
 
@@ -146,19 +139,16 @@ export async function deleteData(req, res) {
   };
 
   return res.json({ message: "Invalid Type" });
-
 }
-
-
 
 export async function updateCustomerAsAdmin(req, res) {
   try {
     const validation = update_customer_as_admin.validate(req.body);
-    if (validation.error)
-      return HttpException(res, 400, validation.error.details[0].message, {});
+    if (validation.error) return HttpException(res, 400, validation.error.details[0].message, {});
+    
     const validated_req = validation.value;
-
     const customer = await models.updateCustomerAsAdmin(validated_req);
+
     customer.password = undefined;
     return HttpResponse(res, 200, 'Customer Updated', { customer });
   } catch (error) {
@@ -176,10 +166,12 @@ export async function getAdminNewTokenPair(req, res) {
       user_name: admin.full_name,
       force_reset_password: admin.force_change_password,
     });
+
     const refresh_token = refreshToken(UserType.ADMIN, {
       id: admin.id,
       user_type: UserType.ADMIN,
     });
+
     return HttpResponse(res, 200, 'Admin New Token created', {
       token,
       refresh_token,
@@ -192,18 +184,17 @@ export async function getAdminNewTokenPair(req, res) {
 export async function createCustomer(req, res) {
   try {
     const validation = create_customer.validate(req.body);
-    if (validation.error)
-      return HttpException(res, 400, validation.error.details[0].message, {});
+    if (validation.error) return HttpException(res, 400, validation.error.details[0].message, {});
+    
     const validated_req = validation.value;
     const customer_exists = await models.readCustomerByEmail(validated_req.email);
-    if (customer_exists) {
-      return HttpException(res, 400, 'Customer already exists', {});
-    }
-    if (validated_req.password) {
-      validated_req.password = await encryptPassword(validated_req.password);
-    }
+    if (customer_exists) return HttpException(res, 400, 'Customer already exists', {});
+    
+    if (validated_req.password) validated_req.password = await encryptPassword(validated_req.password);
+    
     console.log(validated_req);
     const customer = await models.createCustomer(validated_req);
+
     customer.password = undefined;
     return HttpResponse(res, 200, 'Customer created', { customer });
   } catch (error) {
@@ -211,18 +202,17 @@ export async function createCustomer(req, res) {
   }
 }
 
-
 export async function updateCustomer(req, res) {
   try {
     const validation = update_customer.validate(req.body);
-    if (validation.error)
-      return HttpException(res, 400, validation.error.details[0].message, {});
+    if (validation.error) return HttpException(res, 400, validation.error.details[0].message, {});
+    
     const validated_req = validation.value;
-    if (validated_req.password) {
-      validated_req.password = await encryptPassword(validated_req.password);
-    }
+    if (validated_req.password) validated_req.password = await encryptPassword(validated_req.password);
+    
     validated_req.id = req.user.id;
     const customer = await models.updateCustomer(validated_req);
+
     customer.password = undefined;
     return HttpResponse(res, 200, 'Customer Updated', { customer });
   } catch (error) {
@@ -233,6 +223,7 @@ export async function updateCustomer(req, res) {
 export async function getCustomer(req, res) {
   try {
     const customer = await models.readCustomerById(req.user.id);
+
     customer.password = undefined;
     return HttpResponse(res, 200, 'Customer Fetched', { customer });
   } catch (error) {
@@ -243,24 +234,19 @@ export async function getCustomer(req, res) {
 export async function loginCustomer(req, res) {
   try {
     const validation = login_customer.validate(req.body);
-    if (validation.error)
-      return HttpException(res, 400, validation.error.details[0].message, {});
+    if (validation.error) return HttpException(res, 400, validation.error.details[0].message, {});
+    
     const validated_req = validation.value;
-
     const customer = await models.readCustomerByEmail(validated_req.email);
+   
+    if (!customer) return HttpException(res, 400, 'Email or password is wrong', {});
     console.log(customer);
-    if (!customer) {
-      return HttpException(res, 400, 'Email or password is wrong', {});
-    }
 
-    const password_match = await bcrypt.compare(
-      validated_req.password,
-      customer.password
-    );
-    if (!password_match) {
-      return HttpException(res, 400, 'Email or password is wrong', {});
-    }
+    const password_match = await bcrypt.compare(validated_req.password, customer.password);
+    if (!password_match) return HttpException(res, 400, 'Email or password is wrong', {});
+    
     customer.password = undefined;
+
     const token = signToken(UserType.CUSTOMER, {
       id: customer.id,
       user_type: UserType.CUSTOMER,
@@ -270,6 +256,7 @@ export async function loginCustomer(req, res) {
       id: customer.id,
       user_type: UserType.CUSTOMER,
     });
+
     return HttpResponse(res, 200, 'Customer created', {
       customer,
       token,
@@ -279,13 +266,12 @@ export async function loginCustomer(req, res) {
     return InternalServerException(res, error);
   }
 }
+
 export async function getCustomerNewTokenPair(req, res) {
   try {
     const customer = await models.readCustomerById(req.user.id);
-    if (!customer) {
-      return HttpException(res, 400, 'Email or password is wrong', {});
-    }
-
+    if (!customer) return HttpException(res, 400, 'Email or password is wrong', {});
+    
     const token = signToken(UserType.CUSTOMER, {
       id: customer.id,
       user_type: UserType.CUSTOMER,
@@ -295,6 +281,7 @@ export async function getCustomerNewTokenPair(req, res) {
       id: customer.id,
       user_type: UserType.CUSTOMER,
     });
+
     return HttpResponse(res, 200, 'Customer New Token created', {
       token,
       refresh_token,
@@ -307,16 +294,12 @@ export async function getCustomerNewTokenPair(req, res) {
 export async function resetPassword(req, res) {
   try {
     const validation = email_validate.validate(req.body);
-    if (validation.error)
-      return HttpException(res, 400, validation.error.details[0].message, {});
+    if (validation.error) return HttpException(res, 400, validation.error.details[0].message, {});
+    
     const validated_req = validation.value;
-
     const customer = await models.readCustomerByEmail(validated_req.email);
-
-    if (!customer) {
-      return HttpException(res, 400, 'Customer not found', {});
-    }
-
+    if (!customer) return HttpException(res, 400, 'Customer not found', {});
+    
     const reset_token = jwt.sign({
       id: customer.id,
       email: customer.email,
@@ -384,10 +367,7 @@ export async function resetPassword(req, res) {
         console.log('Email sent: ' + info.response);
         return HttpResponse(res, 200, 'Email sent', {});
       }
-    }
-    );
-
-
+    });
   } catch (error) {
     return InternalServerException(res, error);
   }
@@ -398,18 +378,12 @@ export async function resetPasswordPatch(req, res) {
     const { token } = req.params;
     const { password, confirm_password } = req.body;
 
-    if (password !== confirm_password) {
-      return HttpException(res, 400, 'Passwords do not match', {});
-    }
-
+    if (password !== confirm_password) return HttpException(res, 400, 'Passwords do not match', {});
+    
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_PRIVATE_KEY);
-
     const customer = await models.readCustomerById(decoded.id);
-
-    if (!customer) {
-      return HttpException(res, 400, 'Customer not found', {});
-    }
-
+    if (!customer) return HttpException(res, 400, 'Customer not found', {});
+    
     customer.password = await encryptPassword(password);
     await models.updateCustomer(customer);
 

@@ -11,8 +11,8 @@ const buyerSchema = new mongoose.Schema({
     Country: { type: String, default: null },
     Platform: { type: String, default: null },
     Certification: { type: String, default: null }
-},
-{timestamps: true}
-);
+}, {
+    timestamps: true
+});
 
 export const Buyer = mongoose.model('Buyer', buyerSchema);

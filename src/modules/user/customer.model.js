@@ -79,6 +79,50 @@ const CustomerSchema = new mongoose.Schema({
       default: 0,
   },
 
+  usa_hsn_codes: {
+    type: [String],
+  },
+
+  usa_hsn_codes_valid_upto: {
+    type: Date,
+  },
+
+  usa_export_hsn_codes: {
+    type: [String],
+  },
+
+  usa_export_hsn_codes_valid_upto: {
+    type: Date,
+  },
+
+  usa_buyer_sub:{
+    type: Number,
+    default: 0,
+  },
+
+  usa_buyer_sub_valid_upto:{
+    type: Date,
+  },
+
+  usa_supplier_sub:{
+    type: Number,
+    default: 0,
+  },
+
+  usa_supplier_sub_valid_upto:{
+    type: Date,
+  },
+
+  usa_download_export_sub: {
+    type: Number,
+    default: 0,
+  },
+
+  usa_download_import_sub: {
+      type: Number,
+      default: 0,
+  },
+
   createdAt: {
     type: Date,
   },
