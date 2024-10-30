@@ -194,7 +194,23 @@ const uniqueAnalysis = async (req, res) => {
                     { $group: { _id: "$Exporter_Name" } },
                     { $project: { _id: 0, data: "$_id", count: 1 } },
                     { $sort: { data: 1} }
-                ]
+                ],
+                Port_of_Loading: [
+                    { $group: { _id: "$Port_of_Loading" } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { data: 1} }
+                ],
+                Port_of_Discharge: [
+                    { $group: { _id: "$Port_of_Discharge" } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { data: 1} }
+                ],
+                Country_of_Destination: [
+                    { $group: { _id: "$Country_of_Destination" } },
+                    { $project: { _id: 0, data: "$_id", count: 1 } },
+                    { $sort: { data: 1} }
+                ],
+
             }
         }
     ];
